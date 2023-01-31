@@ -11,7 +11,7 @@ public class Folder implements Node {
         return null;
     }
 
-    /** Stores the corresponding object in .git directory **/
+    /** Stores the corresponding object in .git directory (file .git/object/[hash]) **/
     @Override
     public void store() {
     }
@@ -22,11 +22,12 @@ public class Folder implements Node {
         return null;
     }
 
-    /** Loads the folder corresponding to the given hash. **/
+    /** Loads the folder corresponding to the given hash (from file .git/object/[hash]). **/
     public static Folder loadFolder(String hash) {
         return null;
     }
 
+    /** Restores the file node at the given path. **/
     @Override
     public void restore(String path) {
     }
