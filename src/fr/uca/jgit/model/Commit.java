@@ -1,6 +1,7 @@
 package fr.uca.jgit.model;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,10 +14,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class Commit implements JGitObject {
-    private List<Commit> parents;
-    private Folder state;
-    private LocalDateTime timestamp;
-    private String message;
+    final private List<Commit> parents;
+    final private Folder state;
+    final private LocalDateTime timestamp;
+    final private String message;
 
     Commit(List<Commit> parents, Folder state, LocalDateTime timestamp, String message) {
         this.parents = parents;
@@ -50,18 +51,25 @@ public class Commit implements JGitObject {
         return Utils.hash(toString());
     }
 
-    /** Stores the corresponding object in .git directory (to file .git/logs/[hash]). **/
+    /** Stores the corresponding object in .git directory (to file .jgit/logs/[hash]). **/
     @Override
     public void store() {
+        state.store();
+        File objectFile = new File(".jgit/logs/" + hash());
+        try (FileOutputStream fos = new FileOutputStream(objectFile)) {
+            fos.write(toString().getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("IO Error storing object in .jgit directory: " + e.getMessage());
+        }
     }
 
-    /** Loads the commit corresponding to the given hash (from file .git/logs/[hash]). **/
+    /** Loads the commit corresponding to the given hash (from file .jgit/logs/[hash]). **/
     public static Commit loadCommit(String hash) {
-        String contents = Utils.loadFile(".git/logs/" + hash);
+        String contents = Utils.loadLogFile(hash);
         String[] parts = contents.split("\n");
 
         List<Commit> parents = new ArrayList<>();
-        String[] parentHashes = parts[0].split(" ");
+        String[] parentHashes = parts[0].split(";");
         for (String parentHash : parentHashes) {
             if (!parentHash.isEmpty()) {
                 parents.add(loadCommit(parentHash));
@@ -95,7 +103,7 @@ public class Commit implements JGitObject {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.join(";", parents.stream().map(c -> c.hash()).toList())).append("\n");
+        sb.append(String.join(";", parents.stream().map(Commit::hash).toList())).append("\n");
         sb.append(timestamp.format(DateTimeFormatter.ofPattern("HH:mm:ss-dd/MM/yyyy"))).append("\n");
         sb.append(message).append("\n");
         sb.append(state.hash());

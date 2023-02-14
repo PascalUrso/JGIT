@@ -66,5 +66,48 @@ public class CommitTest {
         assertTrue(file1.delete());
         assertTrue(file2.delete());
         assertTrue(testFolder.delete());
+        assertTrue(Utils.getObjectFile(state.hash()).delete());
+        assertTrue(Utils.getObjectFile(state.getChildren().get("file1.txt").hash()).delete());
+        assertTrue(Utils.getObjectFile(sub.getChildren().get("file2.txt").hash()).delete());
+        assertTrue(Utils.getObjectFile(sub.hash()).delete());
+    }
+
+    @Test
+    public void testLoadCommit() {
+        // create a commit object to store
+        File workingDir = new File(System.getProperty("user.dir"));
+        File testFolder = new File(workingDir, "test"),
+                file1 = new File(workingDir,"file1.txt"),
+                file2 = new File(testFolder,"file2.txt");
+        // Create a commit with the test folder as its state
+        Folder state = new Folder(), sub = new Folder();
+        state.getChildren().put("test", sub);
+        state.getChildren().put("file1.txt", new TextFile("test content"));
+        sub.getChildren().put("file2.txt", new TextFile("more content"));
+
+        Commit p1 = new Commit(List.of(), new Folder(), "p1"),
+                p2 = new Commit(List.of(), new Folder(), "p2"),
+                commit = new Commit(List.of(p1, p2), state, "msg");
+
+        // store the commit
+        p1.store();
+        p2.store();
+        commit.store();
+
+        // load the commit by hash
+        Commit loadedCommit = Commit.loadCommit(commit.hash());
+
+        // check that the loaded commit has the same properties as the original commit
+        assertEquals(2, loadedCommit.getParents().size());
+        assertEquals(state.toString(), loadedCommit.getState().toString());
+
+        // cleanup
+        assertTrue(new File(".jgit/logs/" + p1.hash()).delete());
+        assertTrue(new File(".jgit/logs/" + p2.hash()).delete());
+        assertTrue(new File(".jgit/logs/" + commit.hash()).delete());
+        assertTrue(Utils.getObjectFile(state.hash()).delete());
+        assertTrue(Utils.getObjectFile(state.getChildren().get("file1.txt").hash()).delete());
+        assertTrue(Utils.getObjectFile(sub.getChildren().get("file2.txt").hash()).delete());
+        assertTrue(Utils.getObjectFile(sub.hash()).delete());
     }
 }

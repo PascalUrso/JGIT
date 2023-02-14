@@ -5,7 +5,7 @@ import java.util.*;
 
 public class Folder implements Node {
     // Mapping Name -> Node
-    private Map<String, Node> children;
+    final Map<String, Node> children;
 
     Map<String, Node> getChildren() {
         return children;
@@ -40,7 +40,7 @@ public class Folder implements Node {
 
     /** Loads the folder corresponding to the given hash (from file .git/object/[hash]). **/
     public static Folder loadFolder(String hash) {
-        String contents = Utils.loadFile(hash);
+        String contents = Utils.loadObjFile(hash);
         Folder folder = new Folder();
         if (!"".equals(contents)) {
             String[] lines = contents.split("\n");
@@ -49,12 +49,8 @@ public class Folder implements Node {
                 String name = parts[0];
                 String type = parts[1];
                 String childHash = parts[2];
-                Node child = null;
-                if (type.equals("t")) {
-                    child = TextFile.loadFile(childHash);
-                } else {
-                    child = Folder.loadFolder(childHash);
-                }
+                Node child = type.equals("t") ? TextFile.loadFile(childHash) :
+                        Folder.loadFolder(childHash);
                 folder.getChildren().put(name, child);
             }
         }

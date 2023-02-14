@@ -22,6 +22,10 @@ public class Utils {
         }
     }
 
+    static File getObjectFile(String hash) {
+        return getObjectFile(hash, false);
+    }
+
     /** File corresponding to hash (.jgit/object/[hash]). **/
     static File getObjectFile(String hash, boolean create) {
         File objectDir = new File(".jgit/objects/" + hash.substring(0, 2));
@@ -43,15 +47,13 @@ public class Utils {
         }
     }
 
-    /** Loads the content of the file corresponding to the given hash (from file .jgit/object/[hash]). **/
-    public static String loadFile(String hash) {
-        File objectFile = getObjectFile(hash, false);
-        if (!objectFile.exists()) {
-            throw new RuntimeException("IO Error retriving object in .jgit directory: " + hash);
+    public static String loadFile(File file) {
+        if (!file.exists()) {
+            throw new RuntimeException("IO Error retriving object in .jgit directory: " + file.getPath());
         }
         try {
-            byte[] bytes = new byte[(int) objectFile.length()];
-            java.io.FileInputStream fis = new java.io.FileInputStream(objectFile);
+            byte[] bytes = new byte[(int) file.length()];
+            java.io.FileInputStream fis = new java.io.FileInputStream(file);
             fis.read(bytes);
             fis.close();
             return new String(bytes);
@@ -59,5 +61,17 @@ public class Utils {
             System.out.println("IO Error loading object from .jgit directory: " + e.getMessage());
             return null;
         }
+    }
+
+    /** Loads the content of the file corresponding to the given hash (from file .jgit/object/[hash]). **/
+    public static String loadObjFile(String hash) {
+        File objectFile = getObjectFile(hash, false);
+        return loadFile(objectFile);
+    }
+
+    /** Loads the content of the file corresponding to the given hash (from file .jgit/logs/[hash]). **/
+    public static String loadLogFile(String hash) {
+        File objectFile = new File(".jgit/logs/" + hash);
+        return loadFile(objectFile);
     }
 }
