@@ -95,7 +95,7 @@ public class Commit implements JGitObject {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.join(";", parents.stream().map(c -> c.hash()).toList()));
+        sb.append(String.join(";", parents.stream().map(c -> c.hash()).toList())).append("\n");
         sb.append(timestamp.format(DateTimeFormatter.ofPattern("HH:mm:ss-dd/MM/yyyy"))).append("\n");
         sb.append(message).append("\n");
         sb.append(state.hash());

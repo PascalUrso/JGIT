@@ -39,13 +39,16 @@ public class CommitTest {
     @Test
     public void testCommitCheckout() throws IOException {
         // Create a test folder with some files in it
-        File testFolder = new File("test"),
-                file1 = new File(testFolder,"file1.txt"),
+        File workingDir = new File(System.getProperty("user.dir"));
+        File testFolder = new File(workingDir, "test"),
+                file1 = new File(workingDir,"file1.txt"),
                 file2 = new File(testFolder,"file2.txt");
         // Create a commit with the test folder as its state
-        Folder state = new Folder();
+        Folder state = new Folder(), sub = new Folder();
+        state.getChildren().put("test", sub);
         state.getChildren().put("file1.txt", new TextFile("test content"));
-        state.getChildren().put("file2.txt", new TextFile("more content"));
+        sub.getChildren().put("file2.txt", new TextFile("more content"));
+        state.store();
         Commit commit = new Commit(List.of(), state, "msg");
 
         // Checkout the commit
